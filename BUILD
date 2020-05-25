@@ -7,16 +7,14 @@ licenses(["notice"])
 cc_library(
     name = "registry",
     srcs = [
-        "registry_element.cc",
         "registry.cc",
     ],
     hdrs = [
-        "type_traits.h",
-        "registry_element.h",
         "registry.h",
     ],
     deps = [
         "//common:error_or",
+        "//common:type_traits",
     ],
     visibility = ["//visibility:public"],
 )
@@ -28,6 +26,6 @@ cc_test(
     ],
     deps = [
         ":registry",
-        "@googletest//:gtest_main",
+        "@com_googletest//:gtest_main",
     ],
 )

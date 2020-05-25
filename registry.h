@@ -7,7 +7,7 @@
 #include <unordered_map>
 
 #include "common/error_or.h"
-#include "registry/type_traits.h"
+#include "common/type_traits.h"
 
 namespace registry {
 
@@ -41,7 +41,7 @@ class Registry {
 
     template <typename T>
     bool Assign(const T& other) {
-      if (DataTypeTrait<T>::type != type_) {
+      if (TypeTrait<T>::type != type_) {
         return false;
       }
       Assign(static_cast<void const*>(&other));
@@ -50,7 +50,7 @@ class Registry {
 
     template <typename T>
     bool Extract(T* other) const {
-      if (DataTypeTrait<T>::type != type_) {
+      if (TypeTrait<T>::type != type_) {
         return false;
       }
       *other = *(reinterpret_cast<T const*>(Extract()));
@@ -79,11 +79,11 @@ class Registry {
     using ValueType = T;
 
     ElementTemplate(const std::string& name, const T& initial_value)
-        : Element(name, DataTypeTrait<T>::type), value_(initial_value) {}
+        : Element(name, TypeTrait<T>::type), value_(initial_value) {}
 
     ElementTemplate(const std::string& name)
-        : Element(name, DataTypeTrait<T>::type),
-          value_(DataTypeTrait<T>::default_value) {}
+        : Element(name, TypeTrait<T>::type),
+          value_(TypeTrait<T>::default_value) {}
 
     ~ElementTemplate() override {}
 

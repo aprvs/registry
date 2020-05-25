@@ -9,6 +9,7 @@ namespace registry {
 namespace internal {
 
 constexpr char kNamespaceCharacter = '.';
+
 std::string RemoveReservedCharacters(const std::string& name,
                                      const char* reserved_chars) {
   std::string corrected_name(name);
@@ -58,7 +59,7 @@ common::ErrorOr<ElementType*> Registry::FindElementType(
     return maybe_element.ErrorOrDie();
   }
   Element* element = maybe_element.ValueOrDie();
-  if (element->type() != DataTypeTrait<typename ElementType::ValueType>::type) {
+  if (element->type() != TypeTrait<typename ElementType::ValueType>::type) {
     return common::Error::kNotFound;
   }
   return static_cast<ElementType*>(element);
