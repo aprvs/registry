@@ -132,6 +132,9 @@ class Registry {
   using String = ElementTemplate<std::string>;
   using Float = ElementTemplate<float>;
   using Double = ElementTemplate<double>;
+  template <typename T,
+            typename = typename std::enable_if<std::is_enum<T>::value>::type>
+  using Enum = ElementTemplate<T>;
 
   Registry(const std::string& name);
 
@@ -189,6 +192,17 @@ class Registry {
   common::ErrorOr<Double*> FindDouble(const std::string& name);
   common::ErrorOr<Double*> AddDouble(const std::string& name);
 
+ public:
+  template <typename T>
+  common::ErrorOr<Enum<T>*> FindEnum(const std::string& name) {
+    return FindElementType<Enum<T>>(name);
+  }
+
+  template <typename T>
+  common::ErrorOr<Enum<T>*> AddEnum(const std::string& name) {
+    return AddElementType<Enum<T>>(name);
+  }
+
   std::set<std::string> GetChildRegistryNames() const;
 
  private:
@@ -196,10 +210,29 @@ class Registry {
   using ElementMap = std::unordered_map<std::string, std::unique_ptr<Element>>;
 
   template <typename ElementType>
-  common::ErrorOr<ElementType*> FindElementType(const std::string& name);
+  common::ErrorOr<ElementType*> FindElementType(const std::string& name) {
+    common::ErrorOr<Element*> maybe_element = FindElement(name);
+    if (!maybe_element.HasValue()) {
+      return maybe_element.ErrorOrDie();
+    }
+    Element* element = maybe_element.ValueOrDie();
+    if (element->type() != TypeTrait<typename ElementType::ValueType>::type) {
+      return common::Error::kNotFound;
+    }
+    return static_cast<ElementType*>(element);
+  }
 
   template <typename ElementType, typename... Args>
-  common::ErrorOr<ElementType*> AddElementType(Args... args);
+  common::ErrorOr<ElementType*> AddElementType(Args... args) {
+    auto element = std::make_unique<ElementType>(std::forward<Args>(args)...);
+    std::pair<ElementMap::iterator, bool> ref =
+        elements_.emplace(element->name(), std::move(element));
+    if (ref.second) {
+      ref.first->second->registry_ = this;
+      return static_cast<ElementType*>(ref.first->second.get());
+    }
+    return common::Error::kUnavailable;
+  }
 
   const std::string name_;
   Registry const* parent_;

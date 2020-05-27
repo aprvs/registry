@@ -2,6 +2,23 @@
 
 #include "gtest/gtest.h"
 
+#include "common/enum_traits.h"
+
+namespace registry {
+
+enum class TestEnum { kEnum1, kEnum2 };
+
+}  // namespace registry
+
+namespace common {
+
+template <>
+constexpr registry::TestEnum EnumTrait<registry::TestEnum>::default_value() {
+  return registry::TestEnum::kEnum2;
+}
+
+}  // namespace common
+
 namespace registry {
 
 class RegistryTest : public ::testing::Test {
@@ -76,6 +93,27 @@ TEST_F(RegistryTest, ChildRegistryNamesTest) {
   EXPECT_EQ(names.count("child2"), 1);
   EXPECT_EQ(names.count("child3"), 1);
   EXPECT_EQ(names.count("child4"), 1);
+}
+
+TEST_F(RegistryTest, EnumTest) {
+  Registry parent("base");
+  common::ErrorOr<Registry::Enum<TestEnum>*> registry_result =
+      parent.AddEnum<TestEnum>("test_enum1");
+  ASSERT_TRUE(registry_result.HasValue());
+  Registry::Enum<TestEnum>* registry_enum1 = registry_result.ValueOrDie();
+  EXPECT_EQ(*registry_enum1, TestEnum::kEnum2);
+
+  registry_result = parent.AddEnum<TestEnum>("test_enum2");
+  ASSERT_TRUE(registry_result.HasValue());
+  Registry::Enum<TestEnum>* registry_enum2 = registry_result.ValueOrDie();
+  EXPECT_EQ(*registry_enum2, TestEnum::kEnum2);
+
+  *registry_enum1 = TestEnum::kEnum1;
+
+  registry_result = parent.FindEnum<TestEnum>("test_enum1");
+  ASSERT_TRUE(registry_result.HasValue());
+  Registry::Enum<TestEnum>* registry_retrieved = registry_result.ValueOrDie();
+  EXPECT_EQ(*registry_retrieved, TestEnum::kEnum1);
 }
 
 TEST(RegistryElementTest, ConstructDestructTest) {

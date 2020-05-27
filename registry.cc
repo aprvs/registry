@@ -51,32 +51,6 @@ Registry::Registry(const std::string& name)
           name, internal::kRegistryReservedChars)),
       parent_(nullptr) {}
 
-template <typename ElementType>
-common::ErrorOr<ElementType*> Registry::FindElementType(
-    const std::string& name) {
-  common::ErrorOr<Element*> maybe_element = FindElement(name);
-  if (!maybe_element.HasValue()) {
-    return maybe_element.ErrorOrDie();
-  }
-  Element* element = maybe_element.ValueOrDie();
-  if (element->type() != TypeTrait<typename ElementType::ValueType>::type) {
-    return common::Error::kNotFound;
-  }
-  return static_cast<ElementType*>(element);
-}
-
-template <typename ElementType, typename... Args>
-common::ErrorOr<ElementType*> Registry::AddElementType(Args... args) {
-  auto element = std::make_unique<ElementType>(std::forward<Args>(args)...);
-  std::pair<ElementMap::iterator, bool> ref =
-      elements_.emplace(element->name(), std::move(element));
-  if (ref.second) {
-    ref.first->second->registry_ = this;
-    return static_cast<ElementType*>(ref.first->second.get());
-  }
-  return common::Error::kUnavailable;
-}
-
 std::string Registry::FullName() const {
   if (parent_ == nullptr) {
     return name();
