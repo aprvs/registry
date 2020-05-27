@@ -192,7 +192,6 @@ class Registry {
   common::ErrorOr<Double*> FindDouble(const std::string& name);
   common::ErrorOr<Double*> AddDouble(const std::string& name);
 
- public:
   template <typename T>
   common::ErrorOr<Enum<T>*> FindEnum(const std::string& name) {
     return FindElementType<Enum<T>>(name);
