@@ -1,7 +1,6 @@
 #include "registry/registry.h"
 
 #include <algorithm>
-#include <iostream>
 #include <memory>
 
 namespace registry {
