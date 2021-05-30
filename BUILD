@@ -12,11 +12,11 @@ cc_library(
     hdrs = [
         "registry.h",
     ],
+    visibility = ["//visibility:public"],
     deps = [
         "//common:error_or",
         "//common:type_traits",
     ],
-    visibility = ["//visibility:public"],
 )
 
 cc_test(
